@@ -36,7 +36,7 @@ function parseSearchResult($_page){
 function parsePage($_fileName){
     $fileContent = file_get_contents($_fileName);
     if($fileContent===false){
-        throw new \Exception("ERROR: File Not Found");
+        throw new \Exception("ERROR: File Not Found: "."$_fileName");
     }
     return parseSearchResult($fileContent);
 

@@ -10,8 +10,9 @@
 require_once 'Crawler_L0.php';
 require_once 'Parser_L0.php';
 require_once 'test.php';
+
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-    define("DIR_SEP",'\\'); else define ("DIR_SEP",'/');
+   { echo "platform:windows\n";define("DIR_SEP",'\\');} else {define ("DIR_SEP",'\/');}
 
 CONST resultCnt = 522;
 CONST L0_TmpDir = "L0";
@@ -46,7 +47,7 @@ function level0_GrabEntries($_eidArray){
 function level0_Parse(&$_eidArray){
     //parse each page of search results and output the eid of result entries as array
     foreach(range(1,1) as $page){
-        $fileName = 'page'.$page.'.html';
+        $fileName = L0_TmpDir.DIR_SEP.'page'.$page.'.html';
 //        echo "parsing ",$fileName,"\n";
         $result = \Parser_L0\parsePage($fileName);
 //        echo ",",count($result),",";

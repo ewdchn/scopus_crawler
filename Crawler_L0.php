@@ -72,7 +72,7 @@ class Crawler_L0
 
     public static function grabPaperEntry($_eid){
         self::checkSession();
-        echo "\n".$_eid."\n";
+//        echo "\n".$_eid."\n";
         $options[CURLOPT_URL] = 'www.scopus.com/record/display.url?eid='.$_eid.'&origin=resultslist';
         $options[CURLOPT_HEADER]=false;
         try{
