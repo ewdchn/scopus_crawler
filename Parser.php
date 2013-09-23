@@ -1,5 +1,5 @@
 <?php
-namespace Parser_L0;
+namespace Parser;
 
 require_once 'simple_html_dom.php';
 
@@ -32,8 +32,7 @@ function parseSearchResult($_page){
 }
 
 
-
-function parsePage($_fileName){
+function parseSearchResultPage($_fileName){
     $fileContent = file_get_contents($_fileName);
     if($fileContent===false){
         throw new \Exception("ERROR: File Not Found: "."$_fileName");
@@ -41,5 +40,20 @@ function parsePage($_fileName){
     return parseSearchResult($fileContent);
 
 }
+
+
+function parseEntry($_page){
+
+}
+
+function parseEntryPage($_fileName){
+    $fileContent = file_get_contents($_fileName);
+    if($fileContent===false){
+        throw new \Exception("ERROR: File Not Found: "."$_fileName");
+    }
+    return parseEntry($fileContent);
+
+}
+
 
 ?>

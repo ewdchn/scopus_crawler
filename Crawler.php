@@ -1,9 +1,9 @@
 <?php
-namespace Crawler_L0;
+namespace Crawler;
 
-require_once 'Crawler_shared.php';
+require_once 'Common.php';
 
-class Crawler_L0
+class Crawler
 {
     private static $crawlerL0=NULL;
 
@@ -16,11 +16,13 @@ class Crawler_L0
         }
         self::$crawlerL0=$this;
     }
+
+
     public static function checkSession(){
         if (!is_null(self::$crawlerL0)){
             return true;
         }else{
-            self::$crawlerL0 = new Crawler_L0();
+            self::$crawlerL0 = new Crawler();
             self::searchInit();
         }
     }
@@ -51,6 +53,7 @@ class Crawler_L0
         return \Common\getPage($options);
     }
 
+
     public static function handleSearch($_page=1){
         self::checkSession();
         //send request to "www.scopus.com/results/handle.url", get result from pages
@@ -68,6 +71,7 @@ class Crawler_L0
 
         return \Common\getPage($options);
     }
+
 
 
     public static function grabPaperEntry($_eid){
