@@ -11,6 +11,16 @@
 namespace Common;
 const COOKIESTORAGE='cookie.txt';
 
+//global vars
+$defaultOptions = array(
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_HEADER => true,
+    CURLOPT_FAILONERROR => true,
+    CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.110 Safari/537.36",
+    CURLOPT_COOKIEJAR => COOKIESTORAGE,
+    CURLOPT_COOKIEFILE => COOKIESTORAGE,
+);
 
 function checkOrCreateDir($_dir){
     if ( file_exists($_dir) && is_dir($_dir)){
@@ -26,17 +36,7 @@ function checkOrCreateDir($_dir){
     }
 
 }
-//global vars
-$inSession = false;
-$defaultOptions = array(
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_HEADER => true,
-    CURLOPT_FAILONERROR => true,
-    CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.110 Safari/537.36",
-    CURLOPT_COOKIEJAR => COOKIESTORAGE,
-    CURLOPT_COOKIEFILE => COOKIESTORAGE,
-);
+
 
 
 
@@ -44,7 +44,6 @@ function init($_cookieStorage = COOKIESTORAGE)
 //visit the main scopus page
 {
     echo "initializing session...";
-    global $inSession;
     $options[CURLOPT_URL] = 'www.scopus.com';
     try{
         $response = getPage($options,$_cookieStorage);
@@ -53,9 +52,8 @@ function init($_cookieStorage = COOKIESTORAGE)
         echo $e->getMessage();
         return false;
     }
-    $inSession = true;
     echo "done\n";
-    return $response;
+    return true;
 }
 
 function getPage($_options=NULL,$_cookieStorage=COOKIESTORAGE){
@@ -72,8 +70,11 @@ function getPage($_options=NULL,$_cookieStorage=COOKIESTORAGE){
     curl_setopt_array($ch,$options);
     $tryCnt=0;
     do{
-        if($tryCnt++>3){
+        if($tryCnt++>5){
             throw new \Exception("ERROR: No response");
+        }
+        else if($tryCnt>2){
+            sleep(1);
         }
         $response = curl_exec($ch);
     }

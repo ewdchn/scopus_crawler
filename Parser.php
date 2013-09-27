@@ -45,7 +45,7 @@ function parseSearchResultPage($_fileName)
 }
 
 
-function parseEntry($_page,$_eid)
+function parseEntry($_page)
 {
     $entry = array();
     $html = \simple_html_dom\str_get_html($_page);
@@ -60,24 +60,30 @@ function parseEntry($_page,$_eid)
     //author
     if(!is_null($node=$html->find('#authorlist',0)))
     {
-
+           $entry['authorList']=$node->innertext;
     }
 
     //DOI
     foreach($html->find('.paddingR15') as $containter)
     {
-
-
+           if(strpos($containter->innertext, "DOI")!==false){
+               $entry["DOI"] = $containter->plaintext;
+               break;
+           }
     }
 
 
     //source
-    if($html->find('.sourceTitle',0))
+    if(!is_null($node=$html->find('.sourceTitle',0)))
     {
-
+            $entry["source"] = $node->innertext;
 
     }
 
+    //citation
+    foreach($html->find('input[name=selectedEIDs]') as $eidContainer){
+        $entry["citation"][] = $eidContainer->getAttribute('value');
+    }
     $html->clear();
     unset($html);
     return $entry;
