@@ -4,6 +4,7 @@ namespace Parser;
 require_once 'simple_html_dom.php';
 
 function parseSearchResult($_page)
+//return eids of search results(50) in search result page
 {
 
     if($_page===false) return false;
@@ -44,7 +45,7 @@ function parseSearchResultPage($_fileName)
 }
 
 
-function parseEntry($_page)
+function parseEntry($_page,$_eid)
 {
     $entry = array();
     $html = \simple_html_dom\str_get_html($_page);
@@ -86,9 +87,9 @@ function parseEntryPage($_fileName){
     $fileContent = file_get_contents($_fileName);
     if($fileContent===false){
         throw new \Exception("ERROR: File Not Found: "."$_fileName");
+        return false;
     }
     return parseEntry($fileContent);
-
 }
 
 
