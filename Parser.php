@@ -3,7 +3,8 @@ namespace Parser;
 
 require_once 'simple_html_dom.php';
 
-function parseSearchResult($_page){
+function parseSearchResult($_page)
+{
 
     if($_page===false) return false;
     $html = \simple_html_dom\str_get_html($_page);
@@ -17,7 +18,7 @@ function parseSearchResult($_page){
             $lnk = html_entity_decode($resultLnk->href);
             preg_match('/(?<=eid\=)([^&]*)(?=&)/',$lnk,$id);
             $ids[] = $id[1];
-            //            echo $id[1],"\n";
+            //  echo $id[1],"\n";
         }
         else {
             echo "EMPTY LINK\n";
@@ -32,7 +33,8 @@ function parseSearchResult($_page){
 }
 
 
-function parseSearchResultPage($_fileName){
+function parseSearchResultPage($_fileName)
+{
     $fileContent = file_get_contents($_fileName);
     if($fileContent===false){
         throw new \Exception("ERROR: File Not Found: "."$_fileName");
@@ -42,8 +44,42 @@ function parseSearchResultPage($_fileName){
 }
 
 
-function parseEntry($_page){
+function parseEntry($_page)
+{
+    $entry = array();
+    $html = \simple_html_dom\str_get_html($_page);
 
+    //title
+    if(!is_null($node=$html->find('.txtTitle',0)))
+    {
+        $entry['title'] = $node->innertext;
+    }
+
+
+    //author
+    if(!is_null($node=$html->find('#authorlist',0)))
+    {
+
+    }
+
+    //DOI
+    foreach($html->find('.paddingR15') as $containter)
+    {
+
+
+    }
+
+
+    //source
+    if($html->find('.sourceTitle',0))
+    {
+
+
+    }
+
+    $html->clear();
+    unset($html);
+    return $entry;
 }
 
 function parseEntryPage($_fileName){
