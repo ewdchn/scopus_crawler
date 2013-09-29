@@ -99,6 +99,7 @@ class Crawler
         catch (\Exception $e)
         {
             echo $e->getMessage() . "\n";
+            echo "handeSearch ERROR\n";
             return false;
         }
     }

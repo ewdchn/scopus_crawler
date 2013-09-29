@@ -43,6 +43,7 @@ function checkOrCreateDir($_dir){
 function init($_cookieStorage = COOKIESTORAGE)
 //visit the main scopus page
 {
+    file_put_contents(COOKIESTORAGE, "");
     echo "initializing session...";
     $options[CURLOPT_URL] = 'www.scopus.com';
     try{
@@ -57,7 +58,7 @@ function init($_cookieStorage = COOKIESTORAGE)
 }
 
 function getPage($_options=NULL,$_cookieStorage=COOKIESTORAGE){
-
+//return webpage of designated URL and options , return content on success, false on ERROR
     global $defaultOptions;
     $options = $defaultOptions;
     foreach($_options as $key=>$value)
@@ -71,7 +72,7 @@ function getPage($_options=NULL,$_cookieStorage=COOKIESTORAGE){
     $tryCnt=0;
     do{
         if($tryCnt++>5){
-            throw new \Exception("ERROR: No response");
+            throw new \Exception("getPage ERROR: No response");
         }
         else if($tryCnt>2){
             sleep(1);
