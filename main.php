@@ -18,7 +18,7 @@ if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
 }
 else
 {
-    define("DIR_SEP", '\/');
+    define("DIR_SEP", '/');
 }
 define('resultCnt', 522);
 define('TmpDir', "tmp");
@@ -35,7 +35,7 @@ function searchGrab()
     foreach (range(1, 11) as $page)
     {
         $fileName = TmpDir . DIR_SEP . 'page' . $page . '.html';
-        while (($response = \Crawler\Crawler::handleSearch($page)) !== false);
+        while (($response = \Crawler\Crawler::handleSearch($page)) === false);
         file_put_contents($fileName, $response);
     }
     echo "done\n";
@@ -133,8 +133,8 @@ set_time_limit(0);
 /* ------------------------execution starts here----------------------- */
 
 //// crawl level 0
-//searchGrab();
-//searchParse($L0eids);
+searchGrab();
+searchParse($L0eids);
 //file_put_contents("l0eid.txt", serialize($L0eids));
 //return;
 //
