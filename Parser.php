@@ -57,6 +57,11 @@ function parseEntry($_page)
     {
         $entry['title'] = $node->innertext;
     }
+    else{
+//        throw new \Exception("No Title\n");
+        echo "NO title";
+        return false;
+    }
 
 
     //author
@@ -101,7 +106,7 @@ function parseCitation($_page)
             $eids[] = $eidContainer->getAttribute('value');
     }
 
-    echo count($eids) . "  citations\n";
+//    echo count($eids) . "  citations\n";
     $html->clear();
     unset($html);
     return $eids;
@@ -111,10 +116,8 @@ function parseEntryPage($_fileName)
 {
     $fileContent = file_get_contents($_fileName);
     if ($fileContent === false)
-    {
         throw new \Exception("ERROR: File Not Found: " . "$_fileName");
-        return false;
-    }
+
     return parseEntry($fileContent);
 }
 
