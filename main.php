@@ -12,14 +12,10 @@ require_once 'Parser.php';
 require_once 'test.php';
 
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-{
-    echo "platform:windows\n";
     define("DIR_SEP", '\\');
-}
 else
-{
     define("DIR_SEP", '/');
-}
+
 define('resultCnt', 522);
 define('TmpDir', "tmp");
 
@@ -42,47 +38,24 @@ function searchGrab()
     echo "done\n";
 }
 
-function searchParse(&$_eidArray)
+function searchParse()
+//parse each page of search results and output the eid of result entries as array
 {
-    //parse each page of search results and output the eid of result entries as array
+    $_eidArray = array();
     foreach (range(1, 11) as $page)
     {
         $fileName = TmpDir . DIR_SEP . 'page' . $page . '.html';
-//        echo "parsing ",$fileName,"\n";
         $result = \Parser\parseSearchResultPage($fileName);
-//        echo ",",count($result),",";
-        $_eidArray = array_merge($_eidArray, $result);
+        foreach ($result as $key => $_eid)
+            $_eidArray[$_eid] = true;
     }
+    return $_eidArray;
 }
 
-
-function L0Grab($_eidArray)
-//given array of eids, grab the page and save in tmp/if the page exists in tmp it's jumped
+function grabEntries($_eidArray)
+//given eid array, grab the entry page and save in tmp/
 {
-    echo "Start Grabbing L0 Entries...";
-    foreach ($_eidArray as $key => $eid)
-    {
-        echo ".";
-
-        $fileName = TmpDir . DIR_SEP . 'entry_' . $eid . '.html';
-        if (file_exists($fileName))
-            continue;
-
-        $response = \Crawler\Crawler::grabPaperEntry($eid);
-        while ($response === false)
-        {
-            echo "!";
-            $response = \Crawler\Crawler::grabPaperEntry($eid);
-        }
-
-        file_put_contents($fileName, $response);
-    }
-    echo "\ndone\n";
-}
-
-function L1Grab($_eidArray)
-{
-    echo "Start Grabbing L1 Entries...";
+    echo "Start Grabbing Entries...";
     foreach ($_eidArray as $eid => $key)
     {
         echo ".";
@@ -103,73 +76,62 @@ function L1Grab($_eidArray)
     echo "\ndone\n";
 }
 
-function L1Parse($_eidArray,&$_L1){
+function parseEntries($_eidArray, &$_entryData)
+//given eid array, find them in tmp folder, parse and return Data and eids of next level citations
+{
+    if (empty($_eidArray))
+        throw new \Exception("array is empty");
     $missingCnt = 0;
-    foreach($_eidArray as $eid=>$key){
-        echo ".";
+    $L2eids = array();
+    foreach ($_eidArray as $eid => $key)
+    {
         $fileName = TmpDir . DIR_SEP . 'entry_' . $eid . '.html';
         $response = file_get_contents($fileName);
-        $_L1[$eid] = \Parser\parseEntry($response);
-        if($_L1[$eid]===false){
+        $_entryData[$eid] = \Parser\parseEntry($response);
+        if ($_entryData[$eid] === false)
+        {
             echo " $eid\n";
             $missingCnt++;
             continue;
         }
-        $_L1[$eid]['citation'] = \Parser\parseCitation($response);
+        $_entryData[$eid]['citation'] = \Parser\parseCitation($response);
 
-        $L2eids = array();
-        foreach ($_L1[$eid]['citation'] as $_eid)
+        foreach ($_entryData[$eid]['citation'] as $_eid)
             $L2eids[$_eid] = true;
     }
     echo "missing $missingCnt\n";
     return $L2eids;
 }
 
-
-function L0Parse($_eidArray, &$_L0)
-//return list of L1 eids
-{
-    $L1eids = array();
-    if (empty($_eidArray))
-        throw new \Exception("array is empty");
-
-    foreach ($_eidArray as $key => $eid)
-    {
-        $fileName = TmpDir . DIR_SEP . 'entry_' . $eid . '.html';
-        $response = file_get_contents($fileName);
-        $_L0[$eid] = \Parser\parseEntry($response);
-        $_L0[$eid]['citation'] = \Parser\parseCitation($response);
-
-        foreach ($_L0[$eid]['citation'] as $_eid)
-                $L1eids[$_eid] = true;
-
-    }
-
-//  print_r($_L0[$key]);
-    return $L1eids;
-}
-
 set_time_limit(0);
 /* ------------------------execution starts here----------------------- */
 
 //// crawl level 0
-searchGrab();
-searchParse($L0eids);
-//file_put_contents("l0eid.txt", serialize($L0eids));
+//searchGrab();
+$L0eids = searchParse();
+file_put_contents("l0eid.txt", serialize($L0eids));
+
 
 //parse/extract level 0
-//$L0eids = unserialize(file_get_contents("l0eid.txt"));
-//echo count($L0eids) . "\n";
-//L0Grab($L0eids);
+$L0eids = unserialize(file_get_contents("l0eid.txt"));
+echo "level 0 " . count($L0eids) . "\n";
+grabEntries($L0eids);
+$L1eids = parseEntries($L0eids, $L0Data);
+file_put_contents("l1eid.txt", serialize($L1eids));
 
-//$L1eids = L0Parse($L0eids, $L0Data);
-//echo count($L1eids) . "\n";
-//file_put_contents("l1eid.txt", serialize($L1eids));
 
+//L1
 $L1eids = unserialize(file_get_contents("l1eid.txt"));
-//L1Grab($L1eids);
-$L2eids = L1Parse($L1eids,$L1Data);
+echo "level 1 " . count($L1eids) . "\n";
+grabEntries($L1eids);
+$L2eids = parseEntries($L1eids, $L1Data);
 file_put_contents("l2eid.txt", serialize($L2eids));
+
+
+//L2
+$L2eids = unserialize(file_get_contents("l2eid.txt"));
+echo "level 2 " . count($L2eids) . "\n";
+grabEntries($L2eids);
 
 //echo "\n",count($level0eids);
 //foreach($level0eids as $eid){
