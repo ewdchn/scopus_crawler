@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Created by JetBrains PhpStorm.
- * User: ewdchn
- * Date: 9/17/13
- * Time: 5:37 PM
- * To change this template use File | Settings | File Templates.
- */
 require_once 'Crawler.php';
 require_once 'Parser.php';
 require_once 'test.php';
@@ -94,25 +87,25 @@ function parseEntries($_eidArrayArr, &$_entryDataArr, &$_childrenArr)
     $parentLveid = array();
     foreach ($_eidArrayArr as $entryeid => $key)
     {
-        echo ".";
-        $fileName = TmpDir . DIR_SEP . 'entry_' . $entryeid . '.html';
-        $response = file_get_contents($fileName);
-        $_entryDataArr[$entryeid] = \Parser\parseEntry($response);
-        // Error with Entry Page
-        if ($_entryDataArr[$entryeid] === false)
-        {
+        try{
+            //echo ".";
+            $fileName = TmpDir . DIR_SEP . 'entry_' . $entryeid . '.html';
+            $_entryDataArr[$entryeid] = \Parser\parseEntryPage($fileName);
+            if ($_entryDataArr[$entryeid] === false)
+            {
 //            echo " $entryeid\n";
-            echo "\n\!";
-            $missingCnt++;
-            $missing[$entryeid] = true;
-            continue;
+                echo '\n'.'!';
+                $missing[$entryeid] = true;
+                continue;
+            }
         }
-
-        //get citations(pointer to parents)
-        $_entryDataArr[$entryeid]['citation'] = \Parser\parseCitation($response);
+        catch(\Exception $e){
+            echo $e->getMessage();
+        }
 
         foreach ($_entryDataArr[$entryeid]['citation'] as $parenteid)
         {
+            $parenteid = $parenteid['eid'];
             $parentLveid[$parenteid] = true;  // mark as existant next level
             //if Entry Page error occured, find it's children (last level)
             $_childrenArr[$parenteid][] = $entryeid;//add children to parent
@@ -124,44 +117,48 @@ function parseEntries($_eidArrayArr, &$_entryDataArr, &$_childrenArr)
 
 set_time_limit(0);
 /* ------------------------execution starts here----------------------- */
+if (basename($argv[0]) == basename(__FILE__)) {
+    main();
+}
 
+
+function main(){
 //// crawl level 0
 //searchGrab();
-$L0eids = searchParse();
-file_put_contents("l0eid.txt", serialize($L0eids));
+    $L0eids = searchParse();
+    file_put_contents("l0eid.txt", serialize($L0eids));
 
 
 //parse/extract level 0
-$L0eids = unserialize(file_get_contents("l0eid.txt"));
-echo "level 0 :" . count($L0eids) . "\n";
-grabEntries($L0eids);
-$L1eids = parseEntries($L0eids, $L0Data,$childrenArr);
-file_put_contents("l1eid.txt", serialize($L1eids));
+    $L0eids = unserialize(file_get_contents("l0eid.txt"));
+    echo "level 0 :" . count($L0eids) . "\n";
+    grabEntries($L0eids);
+    $L1eids = parseEntries($L0eids, $L0Data,$childrenArr);
+    file_put_contents("l1eid.txt", serialize($L1eids));
 
 
 //L1
-$L1eids = unserialize(file_get_contents("l1eid.txt"));
-echo "level 1 :" . count($L1eids) . "\n";
-grabEntries($L1eids);
-$L2eids = parseEntries($L1eids, $L1Data,$childrenArr);
-file_put_contents("l2eid.txt", serialize($L2eids));
+    $L1eids = unserialize(file_get_contents("l1eid.txt"));
+    echo "level 1 :" . count($L1eids) . "\n";
+    grabEntries($L1eids);
+    $L2eids = parseEntries($L1eids, $L1Data,$childrenArr);
+    file_put_contents("l2eid.txt", serialize($L2eids));
 
 
 //L2
-$L2eids = unserialize(file_get_contents("l2eid.txt"));
-echo "level 2 :" . count($L2eids) . "\n";
-grabEntries($L2eids);
+    $L2eids = unserialize(file_get_contents("l2eid.txt"));
+    echo "level 2 :" . count($L2eids) . "\n";
+    grabEntries($L2eids);
 
-foreach($missing as $eid=>$key){
-    $key = $childrenArr[$eid];
-}
-file_put_contents("missing.txt",serialize($missing));
+    foreach($missing as $eid=>$key){
+        $key = $childrenArr[$eid];
+    }
+    file_put_contents("missing.txt",serialize($missing));
 //echo "\n",count($level0eids);
 //foreach($level0eids as $eid){
 //    echo level0_grabPaperEntry($eid);
 //    return 0;
 //}
+}
 
-
-return 0;
 ?>

@@ -4,10 +4,9 @@ namespace Parser;
 
 require_once 'simple_html_dom.php';
 
-function parseSearchResult($_page)
 //return eids of search results(50) in search result page
+function parseSearchResult($_page)
 {
-
     if ($_page === false)
         return false;
     $html = \simple_html_dom\str_get_html($_page);
@@ -47,15 +46,13 @@ function parseSearchResultPage($_fileName)
     return parseSearchResult($fileContent);
 }
 
-function parseEntry($_page)
+function parseEntry(&$html)
 {
     $entry = array();
-    $html = \simple_html_dom\str_get_html($_page);
 
     //title
-    if (!is_null($node = $html->find('.txtTitle', 0)))
-    {
-        $entry['title'] = $node->innertext;
+    if (!is_null($node = $html->find('.txtTitle', 0))){
+        $entry['title'] = trim(html_entity_decode(str_replace('&nbsp;',' ',$node->plaintext)));;
     }
     else{
 //        throw new \Exception("No Title\n");
@@ -65,60 +62,77 @@ function parseEntry($_page)
 
 
     //author
-    if (!is_null($node = $html->find('#authorlist', 0)))
-    {
-        $entry['authorList'] = $node->innertext;
+    foreach($html->find('#authorlist span') as $authorSpan){
+        if(($authorLnk=$authorSpan->find('a',0))!==null){
+            $authorText = trim(html_entity_decode(str_replace('&nbsp;',' ',$authorLnk->plaintext)));
+        } else{
+            $authorText = trim(html_entity_decode(str_replace('&nbsp;',' ',$authorSpan->plaintext)));
+        }
+        if(!empty($authorText))
+            $entry['author'][] = $authorText;
     }
 
     //DOI
-    foreach ($html->find('.paddingR15') as $containter)
-    {
-        if (strpos($containter->innertext, "DOI") !== false)
+    foreach ($html->find('.paddingR15') as $container) {
+        if (strpos($container->plaintext, "DOI") !== false)
         {
-            $entry["DOI"] = $containter->plaintext;
+            $entry['DOI'] = trim(str_replace('DOI:','',$container->plaintext));
             break;
         }
     }
 
-
     //source
-    if (!is_null($node = $html->find('.sourceTitle', 0)))
-    {
-        $entry["source"] = $node->innertext;
+    if (!is_null($node = $html->find('.sourceTitle', 0))){
+        $entry["source"] = trim(html_entity_decode(str_replace('&nbsp;',' ',$node->plaintext)));
     }
 
-
-    $html->clear();
-    unset($html);
     return $entry;
 }
 
-function parseCitation($_page)
+function parseCitationInfo(&$_container){
+    $citation = array();
+
+    $citation['eid']=$_container->getAttribute('value');
+
+    return $citation;
+
+}
 //get eids in citation containers, return eids as array
+function parseCitation(&$html)
 {
-    $html = \simple_html_dom\str_get_html($_page);
-    $eids = array();
+    $arrCitation = array();
+
+
     foreach ($html->find('.referencesBlk') as $citContainer)
     {
         if (!($eidContainer = $citContainer->find('input[name=selectedEIDs]', 0)))
             echo "ERROR: No eid";
-        else
-            $eids[] = $eidContainer->getAttribute('value');
+        else{
+            $arrCitation[] = parseCitationInfo($eidContainer);
+
+            //parse info here
+
+        }
     }
 
 //    echo count($eids) . "  citations\n";
-    $html->clear();
-    unset($html);
-    return $eids;
+    return $arrCitation;
 }
 
+
+//given eid, get the Entry Page and Parse it, return the structured entry data
 function parseEntryPage($_fileName)
 {
+//    $fileName = TmpDir . DIR_SEP . 'entry_' . $_entryeid . '.html';
     $fileContent = file_get_contents($_fileName);
     if ($fileContent === false)
-        throw new \Exception("ERROR: File Not Found: " . "$_fileName");
-
-    return parseEntry($fileContent);
+        throw new \Exception("ERROR: File Not Found: " . "$fileName");
+    $html = \simple_html_dom\str_get_html($fileContent);
+    $tmpEntry = parseEntry($html);
+    $tmpEntry['citation'] = parseCitation($html);
+    $html->clear();
+    unset($html);
+    return $tmpEntry;
 }
 
 ?>
