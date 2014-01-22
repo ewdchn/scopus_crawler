@@ -1,5 +1,19 @@
 <?php
-
+/* Files containing function for parsing html from scopus
+ *
+ * Functions:
+ *  parseSearchResultPage & parseSearchResult:
+ *      parse target:   search result list pages
+ *      parse items:    eids of matching articles
+ *
+ *  parseEntryPage & parseEntry:
+ *      parse target:   html of article pages
+ *      parse items:    title,author,DOI,source
+ *
+ *  parseCitation & parseCitationInfo:
+ *      parse target:   html of article pages
+ *      parse items:    title,author of articles cited in article page
+ */
 namespace Parser;
 
 require_once 'simple_html_dom.php';
@@ -77,6 +91,20 @@ function parseEntry(&$html)
     return $entry;
 }
 
+//given eid, get the Entry Page and Parse it, return the structured entry data
+function parseEntryPage($_fileName)
+{
+    $fileContent = file_get_contents($_fileName);
+    if ($fileContent === false)     {throw new \Exception("ERROR: File Not Found: " . "$_fileName");}
+    $html = \simple_html_dom\str_get_html($fileContent);
+
+    $tmpEntry = parseEntry($html);
+    $tmpEntry['citation'] = parseCitation($html);
+
+    $html->clear();
+    unset($html);
+    return $tmpEntry;
+}
 
 function parseCitationInfo(&$_container){
     $arrInfo = array();
@@ -112,19 +140,5 @@ function parseCitation(&$html)
 }
 
 
-//given eid, get the Entry Page and Parse it, return the structured entry data
-function parseEntryPage($_fileName)
-{
-    $fileContent = file_get_contents($_fileName);
-    if ($fileContent === false)     {throw new \Exception("ERROR: File Not Found: " . "$_fileName");}
-    $html = \simple_html_dom\str_get_html($fileContent);
-
-    $tmpEntry = parseEntry($html);
-    $tmpEntry['citation'] = parseCitation($html);
-
-    $html->clear();
-    unset($html);
-    return $tmpEntry;
-}
 
 ?>

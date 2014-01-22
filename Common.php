@@ -5,7 +5,19 @@
  * Date: 9/17/13
  * Time: 10:09 PM
  * To change this template use File | Settings | File Templates.
+ *
+ *
+ * This file stores:
+ *  Common Curl Options
+ *  checkOrCreateDir: Macro function for creating directory
+ *  init: Macro function to prepare crawling (visit scopus, get cookie)
+ *  getPage: Macro function to crawl a page from scopus
+ *
  */
+
+
+
+
 
 
 namespace Common;

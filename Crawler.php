@@ -1,5 +1,19 @@
 <?php
-
+/**
+ * Class File for funcdtion related to crawling
+ *
+ * An instance of Crawler = An established session of scopus
+ * stored in crawlerL0
+ * functions:
+ *  construct: calls Common/init
+ *  checkSession: check current session status
+ *  forceNewSession: force open a new session of scopus
+ *  searchInit: initialize search session for matching articles
+ *  handleSearch: get html of search result list pages (to get eids of match articles)
+ *  grabPaperEntry: get html of articles given eids
+ *
+ *
+ */
 namespace Crawler;
 
 require_once 'Common.php';
