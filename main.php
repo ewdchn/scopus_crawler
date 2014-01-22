@@ -2,7 +2,6 @@
 
 require_once 'Crawler.php';
 require_once 'Parser.php';
-require_once 'test.php';
 
 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
     define("DIR_SEP", '\\');
@@ -85,30 +84,28 @@ function parseEntries($_eidArrayArr, &$_entryDataArr, &$_childrenArr)
     echo "parsing...";
     $missingCnt = 0;
     $parentLveid = array();
-    foreach ($_eidArrayArr as $entryeid => $key)
+    foreach ( $_eidArrayArr as $entryeid => $key )
     {
         try{
-            //echo ".";
             $fileName = TmpDir . DIR_SEP . 'entry_' . $entryeid . '.html';
+//            echo "\n",$entryeid;
             $_entryDataArr[$entryeid] = \Parser\parseEntryPage($fileName);
             if ($_entryDataArr[$entryeid] === false)
             {
-//            echo " $entryeid\n";
                 echo '\n'.'!';
                 $missing[$entryeid] = true;
                 continue;
             }
         }
-        catch(\Exception $e){
-            echo $e->getMessage();
-        }
+        catch( \Exception $e )    {echo $e->getMessage();}
 
-        foreach ($_entryDataArr[$entryeid]['citation'] as $parenteid)
+        /*Note : the entries cited by THIS entry is the parent
+         */
+        foreach ($_entryDataArr[$entryeid]['citation'] as $parenteid=>$info)
         {
-            $parenteid = $parenteid['eid'];
-            $parentLveid[$parenteid] = true;  // mark as existant next level
-            //if Entry Page error occured, find it's children (last level)
-            $_childrenArr[$parenteid][] = $entryeid;//add children to parent
+            $parentLveid[$parenteid] = true;  // mark as existance at next level
+            if (!isset($_childrenArr[$parenteid])){ $_childrenArr[$parenteid] = array();}
+            $_childrenArr[$parenteid][$entryeid] = true;//add children(THIS) to parent
         }
     }
     echo "missing $missingCnt\n";
@@ -117,14 +114,14 @@ function parseEntries($_eidArrayArr, &$_entryDataArr, &$_childrenArr)
 
 set_time_limit(0);
 /* ------------------------execution starts here----------------------- */
-if (basename($argv[0]) == basename(__FILE__)) {
-    main();
-}
 
-
-function main(){
-//// crawl level 0
+if (basename($argv[0]) !== basename(__FILE__))   {return ;}
+else
+{
+    echo "main\n";
+// crawl level 0
 //searchGrab();
+    echo ("Start ");
     $L0eids = searchParse();
     file_put_contents("l0eid.txt", serialize($L0eids));
 
@@ -154,11 +151,7 @@ function main(){
         $key = $childrenArr[$eid];
     }
     file_put_contents("missing.txt",serialize($missing));
-//echo "\n",count($level0eids);
-//foreach($level0eids as $eid){
-//    echo level0_grabPaperEntry($eid);
-//    return 0;
-//}
 }
+
 
 ?>

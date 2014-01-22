@@ -13,15 +13,17 @@ require_once "main.php";
 function pagerGrabTest(){
 
 }
+
 function pageParseTest(){
     $L0eids = unserialize(file_get_contents("l0eid.txt"));
     echo "level 0 :" . count($L0eids) . "\n";
-    $testEids = array_slice($L0eids,0,10);
+    $testEids = array_slice($L0eids,0,100);
     foreach($testEids as $entryeid=>$key)
     $Data=array();
     $children = array();
-    parseEntries($testEids,$Data,$children);
-    print_r($Data);
+    $parentlv = parseEntries($testEids,$Data,$children);
+    //print_r($Data);
+    //echo count($parentlv);
 }
 pageParseTest();
 
